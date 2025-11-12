@@ -70,7 +70,7 @@ export default function LoginPage() {
 
           {/* Password */}
           <div>
-            <label className="block text-sm mb-1">Passwordxxxxxxxx</label>
+            <label className="block text-sm mb-1">Password</label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
