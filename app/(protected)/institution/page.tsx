@@ -39,6 +39,17 @@ export default function InstitutionsPage() {
   const [hasPermission, setHasPermission] = useState<boolean>(true);
 
 
+  const filteredInstitutions = (institutions || []).map(inst => ({
+    InstituteId: inst.instituteId || "-",
+    name: inst.name || "-",
+    country: inst.country || "-",
+    state: inst.state || "-",
+    email: inst.email || "-",
+    phoneNo: inst.phoneNo || "-",
+    Status: inst.status || "-"
+  }));
+
+
   const fetchInstitutions = async () => {
     setLoading(true);
     try {
@@ -117,8 +128,6 @@ export default function InstitutionsPage() {
 
     fetchPermissions();
   }, []);
-
-
 
   useEffect(() => {
     fetchInstitutions();
@@ -255,7 +264,7 @@ export default function InstitutionsPage() {
                       setSearchTerm(e.target.value);
                       setCurrentPage(1);
                     }}
-                    className="w-full sm:w-48 md:w-64 pl-8 pr-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+                    className="w-full sm:w-48 md:w-64 pl-8 pr-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-[#3a4480] "
                   />
                 </div>
 
@@ -266,7 +275,7 @@ export default function InstitutionsPage() {
                     setStatusFilter(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="w-full sm:w-auto border text-sm rounded-md py-2 px-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="w-full sm:w-auto border text-sm rounded-md py-2 px-2 focus:outline-none focus:ring-2 focus:ring-[#3a4480] "
                 >
                   <option value="all">All</option>
                   <option value="active">Active</option>
@@ -294,13 +303,13 @@ export default function InstitutionsPage() {
           ) : null}
 
         </div>
-
-
         <ExportModal
           open={open}
+          title={"Institution"}
           onClose={() => setOpen(false)}
-          data={institutions}
+          data={filteredInstitutions}
         />
+
       </div>
 
 
@@ -335,6 +344,8 @@ export default function InstitutionsPage() {
         onConfirm={confirmAction}
         onCancel={() => setConfirmOpen(false)}
       />
+
+
     </div>
   );
 }

@@ -46,19 +46,19 @@ export default function AddInstitutionPage() {
 
   const states: OptionType[] = selectedCountry
     ? State.getStatesOfCountry(selectedCountry.value).map((state) => ({
-        value: state.isoCode,
-        label: state.name,
-      }))
+      value: state.isoCode,
+      label: state.name,
+    }))
     : [];
 
   const cities: OptionType[] =
     selectedCountry && selectedState
       ? City.getCitiesOfState(selectedCountry.value, selectedState.value).map(
-          (city) => ({
-            value: city.name,
-            label: city.name,
-          })
-        )
+        (city) => ({
+          value: city.name,
+          label: city.name,
+        })
+      )
       : [];
 
   /** --- Handlers --- */
@@ -103,16 +103,16 @@ export default function AddInstitutionPage() {
 
   /** --- Styles --- */
   const inputClass =
-    "border border-gray-300 dark:border-neutral-700 p-2 rounded bg-white dark:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500";
+    "border border-[#3a4480] p-2 rounded bg-white focus:outline-none focus:ring-2 focus:ring-[#3a4480]";
 
   const customSelectStyles = {
     control: (provided: any) => ({
       ...provided,
-      borderColor: "#d1d5db",
+      borderColor: "#3a4480",
       borderRadius: "0.375rem",
       minHeight: "38px",
       backgroundColor: "white",
-      "&:hover": { borderColor: "#3b82f6" },
+      "&:hover": { borderColor: "#3a4480" },
     }),
     menu: (provided: any) => ({ ...provided, zIndex: 9999 }),
   };
@@ -168,6 +168,7 @@ export default function AddInstitutionPage() {
             Country <span className="text-red-500">*</span>
           </label>
           <Select
+
             options={countries}
             value={selectedCountry}
             onChange={(val: SingleValue<OptionType>) => {
@@ -204,11 +205,12 @@ export default function AddInstitutionPage() {
 
         {/* City / Location */}
         <div className="flex flex-col">
-          <label className="text-sm font-semibold text-gray-600 dark:text-gray-300 mb-1">
+          <label className="text-sm font-semibold text-gray-600  dark:text-gray-300 mb-1">
             City / Location
           </label>
           <Select
             options={cities}
+
             value={selectedCity}
             onChange={(val: SingleValue<OptionType>) => setSelectedCity(val)}
             placeholder={

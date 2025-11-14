@@ -15,6 +15,12 @@ export interface CreateUserData {
     instituteId: string;
     status?: "active" | "inactive";
 }
+export interface ChangePasswordData {
+    email: string;
+    newPassword: string;
+    confirmPassword: string;
+
+}
 
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -129,5 +135,25 @@ export async function toggleUserStatusRequest(userId: string, status: "active" |
     }
 }
 
+export async function changePasswordRequest(data: ChangePasswordData) {
+    try {
+        const response = await api.post("/auth/changenewpassword", data);
+        return response.data;
+    } catch (error: any) {
+        throw new Error(
+            error.response?.data?.message || "Failed to change password."
+        );
+    }
+}
 
+export async function changePasswordRequestvialogin(data: any) {
+    try {
+        const response = await api.post("/auth/changenewpasswordvialogin", data);
+        return response.data;
+    } catch (error: any) {
+        throw new Error(
+            error.response?.data?.message || "Failed to change password."
+        );
+    }
+}
 export default api;

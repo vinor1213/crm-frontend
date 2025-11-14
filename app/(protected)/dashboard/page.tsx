@@ -225,7 +225,7 @@ export default function DashboardPage() {
   // 🌀 Show Spinner until all required data loaded
   if (!permissionsLoaded || !institutionsLoaded) {
     return (
-      <div className="flex justify-center items-center h-[70vh]">
+      <div className="flex justify-center items-center h-[60vh]">
         <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500"></div>
       </div>
     );
@@ -265,7 +265,7 @@ export default function DashboardPage() {
                 <select
                   value={dateRange}
                   onChange={(e) => setDateRange(e.target.value)}
-                  className="border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+                  className="border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#3a4480]  transition"
                 >
                   {dateOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -289,7 +289,7 @@ export default function DashboardPage() {
                   type="date"
                   value={startDate}
                   onChange={(e) => handleCustomDateChange(setStartDate, e.target.value)}
-                  className="border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+                  className="border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#3a4480]  transition"
                 />
               </div>
 
@@ -301,7 +301,7 @@ export default function DashboardPage() {
                   type="date"
                   value={endDate}
                   onChange={(e) => handleCustomDateChange(setEndDate, e.target.value)}
-                  className="border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+                  className="border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#3a4480]  transition"
                 />
               </div>
             </>
@@ -315,7 +315,7 @@ export default function DashboardPage() {
               <select
                 value={selectedInstitution}
                 onChange={(e) => setSelectedInstitution(e.target.value)}
-                className="border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+                className="border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#3a4480]  transition"
               >
                 <option value="all">All Institutions</option>
                 {institutions.map((inst) => (

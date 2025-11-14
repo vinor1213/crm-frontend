@@ -4,7 +4,12 @@ import { useState, useEffect } from 'react'
 import toast, { Toaster } from 'react-hot-toast'
 import Select from 'react-select'
 import { getActiveInstitutions } from '@/app/lib/request/institutionRequest'
-import { saveSettings, Settings as SettingsType, getSettingsByInstitute } from '@/app/lib/request/settingRequest'
+import {
+
+  getSettingsByInstitute,
+  saveSettings,
+  Settings as SettingsType
+} from '@/app/lib/request/settingRequest'
 
 interface OptionType {
   value: string
@@ -22,8 +27,7 @@ export default function SettingsPage() {
   const [selectedInstitute, setSelectedInstitute] = useState<OptionType | null>(null)
 
   const [formData, setFormData] = useState({
-    image: '',
-    selectedCourse: ''
+    image: ''
   })
   const [courseInput, setCourseInput] = useState('')
   const [customCourses, setCustomCourses] = useState<string[]>([])
@@ -35,7 +39,7 @@ export default function SettingsPage() {
   })
 
   const inputClass =
-    'border rounded px-3 py-2 text-sm text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 outline-none'
+    'border rounded px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 outline-none'
 
   // ------------------- Fetch institutions -------------------
   useEffect(() => {
@@ -54,22 +58,17 @@ export default function SettingsPage() {
     fetchInstitutions()
   }, [])
 
-  // ------------------- Fetch settings on institute select -------------------
+  // ------------------- Fetch settings when institute selected -------------------
   useEffect(() => {
     if (!selectedInstitute) return
 
     const fetchSettings = async () => {
       try {
         const data = await getSettingsByInstitute(selectedInstitute.value)
-        console.log(data, "data")
+        console.log('Fetched settings:', data)
 
-        // Settings exist → prefill for update
-        setFormData({
-
-          image: data.logo || '',
-          selectedCourse: data.courses?.[0] || ''
-        })
-        setCustomCourses(data.courses ? data.courses.slice(1) : [])
+        setFormData({ image: data.logo || '' })
+        setCustomCourses(data.courses || [])
         setPaymentData({
           authToken: data.authToken || '',
           apiKey: data.apiKey || '',
@@ -77,8 +76,7 @@ export default function SettingsPage() {
         })
       } catch (error: any) {
         if (error.message.includes('Settings not found')) {
-          // Settings not found → new creation
-          setFormData({ image: '', selectedCourse: '' })
+          setFormData({ image: '' })
           setCustomCourses([])
           setPaymentData({ authToken: '', apiKey: '', merchantId: '' })
           toast.error('No settings found. You can create new settings.')
@@ -108,29 +106,32 @@ export default function SettingsPage() {
       toast.error('Please enter a course name')
       return
     }
+    if (customCourses.includes(courseInput.trim())) {
+      toast.error('Course already added')
+      return
+    }
+
     setCustomCourses((prev) => [...prev, courseInput.trim()])
     setCourseInput('')
     toast.success('Course added')
+  }
+
+  const handleRemoveCourse = (index: number) => {
+    setCustomCourses((prev) => prev.filter((_, i) => i !== index))
   }
 
   // ------------------- Save All Settings -------------------
   const handleSaveAll = async () => {
     if (!selectedInstitute) return toast.error('Please select an institute')
     if (!formData.image) return toast.error('Please upload an institute logo')
-    if (!formData.selectedCourse && customCourses.length === 0)
-      return toast.error('Please add/select at least one course')
+    if (customCourses.length === 0) return toast.error('Please add at least one course')
     if (!paymentData.authToken || !paymentData.apiKey || !paymentData.merchantId)
       return toast.error('Please fill all payment details')
-
-    const allCourses = [
-      ...(formData.selectedCourse ? [formData.selectedCourse] : []),
-      ...customCourses
-    ]
 
     const payload: SettingsType = {
       instituteId: selectedInstitute.value,
       logo: formData.image,
-      courses: allCourses,
+      courses: customCourses,
       authToken: paymentData.authToken,
       apiKey: paymentData.apiKey,
       merchantId: paymentData.merchantId
@@ -144,18 +145,19 @@ export default function SettingsPage() {
     }
   }
 
+  // ------------------- Render -------------------
   return (
     <div className="p-6 space-y-8">
       <Toaster position="top-right" />
 
-      {/* ---------------- General Settings ---------------- */}
-      <div className="border rounded">
-        <div className="bg-blue-600 text-white px-4 py-2 font-semibold rounded-t">
-          General Settings
-        </div>
-        <div className="p-4 bg-white grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* ---------- General Settings ---------- */}
+      <div className="border rounded-lg shadow-sm overflow-hidden">
+        <div className="bg-blue-600 text-white px-4 py-2 font-semibold">General Settings</div>
+
+        <div className="p-4 md:p-6 bg-white grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Institute */}
           <div className="flex flex-col">
-            <label className="text-sm font-semibold text-gray-600 mb-1">
+            <label className="text-sm font-semibold text-gray-700 mb-1">
               Institute <span className="text-red-500">*</span>
             </label>
             <Select
@@ -164,107 +166,114 @@ export default function SettingsPage() {
               onChange={(selected) => setSelectedInstitute(selected)}
               placeholder="Select Institute"
               isClearable
+              className="text-sm"
             />
           </div>
 
+          {/* Logo */}
           <div className="flex flex-col">
-            <label className="text-sm font-semibold text-gray-600 mb-1">
+            <label className="text-sm font-semibold text-gray-700 mb-1">
               Logo <span className="text-red-500">*</span>
             </label>
-            <div className="flex items-center space-x-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-3 sm:space-y-0">
               {formData.image && (
-                <img src={formData.image} alt="Logo" className="w-20 h-20 rounded border" />
+                <img
+                  src={formData.image}
+                  alt="Logo"
+                  className="w-20 h-20 rounded border object-cover"
+                />
               )}
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleImageUpload}
-                className="border w-full"
+                className="border border-gray-300 rounded p-2 text-sm w-full focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
             </div>
           </div>
 
-          <div className="flex flex-col col-span-2">
-            <label className="text-sm font-semibold text-gray-600 mb-1">
+          {/* Courses */}
+          <div className="flex flex-col col-span-1 md:col-span-2">
+            <label className="text-sm font-semibold text-gray-700 mb-1">
               Courses <span className="text-red-500">*</span>
             </label>
-            <div className="flex space-x-2 mb-2">
+
+            {/* Input + Add Button */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 space-y-3 sm:space-y-0 mb-3">
               <input
                 type="text"
                 placeholder="Enter course name"
-                className={inputClass}
+                className={`flex-1 ${inputClass}`}
                 value={courseInput}
                 onChange={(e) => setCourseInput(e.target.value)}
               />
               <button
                 type="button"
-                className="px-3 py-2 bg-gray-800 text-white text-sm rounded hover:bg-gray-900"
                 onClick={handleAddCourse}
+                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors duration-150"
               >
                 + Add
               </button>
             </div>
-            <Select
-              options={customCourses.map((c) => ({ value: c, label: c }))}
-              value={
-                formData.selectedCourse
-                  ? { value: formData.selectedCourse, label: formData.selectedCourse }
-                  : null
-              }
-              onChange={(selected) =>
-                setFormData((prev) => ({ ...prev, selectedCourse: selected?.value || '' }))
-              }
-              placeholder="Select course"
-              isSearchable
-              className="text-sm"
-            />
+
+            {/* Display Added Courses */}
+            {customCourses.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {customCourses.map((course, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center bg-gray-100 border border-gray-200 rounded-full px-3 py-1 text-sm text-gray-700"
+                  >
+                    <span>{course}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveCourse(index)}
+                      className="ml-2 text-red-500 hover:text-red-700 font-semibold"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">No courses added yet.</p>
+            )}
           </div>
         </div>
       </div>
 
-      {/* ---------------- Payment Settings ---------------- */}
-      <div className="border rounded">
-        <div className="bg-green-600 text-white px-4 py-2 font-semibold rounded-t">
-          Payment Settings
-        </div>
+      {/* ---------- Payment Settings ---------- */}
+      <div className="border rounded-lg shadow-sm overflow-hidden">
+        <div className="bg-green-600 text-white px-4 py-2 font-semibold">Payment Settings</div>
+
         <div className="p-4 bg-white grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="flex flex-col">
-            <label className="text-sm font-semibold text-gray-600 mb-1">
-              Auth Token <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              className={inputClass}
-              value={paymentData.authToken}
-              onChange={(e) => setPaymentData((prev) => ({ ...prev, authToken: e.target.value }))}
-            />
-          </div>
-          <div className="flex flex-col">
-            <label className="text-sm font-semibold text-gray-600 mb-1">
-              API Key <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              className={inputClass}
-              value={paymentData.apiKey}
-              onChange={(e) => setPaymentData((prev) => ({ ...prev, apiKey: e.target.value }))}
-            />
-          </div>
-          <div className="flex flex-col">
-            <label className="text-sm font-semibold text-gray-600 mb-1">
-              Merchant ID <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              className={inputClass}
-              value={paymentData.merchantId}
-              onChange={(e) => setPaymentData((prev) => ({ ...prev, merchantId: e.target.value }))}
-            />
-          </div>
+          {['authToken', 'apiKey', 'merchantId'].map((field, idx) => (
+            <div key={idx} className="flex flex-col">
+              <label className="text-sm font-semibold text-gray-600 mb-1 capitalize">
+                {field === 'authToken'
+                  ? 'Auth Token'
+                  : field === 'apiKey'
+                    ? 'API Key'
+                    : 'Merchant ID'}{' '}
+                <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                className={inputClass}
+                value={paymentData[field as keyof PaymentData]}
+                onChange={(e) =>
+                  setPaymentData((prev) => ({
+                    ...prev,
+                    [field]: e.target.value
+                  }))
+                }
+              />
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* ---------------- Save Button ---------------- */}
+      {/* ---------- Save Button ---------- */}
       <div className="flex justify-end">
         <button
           onClick={handleSaveAll}

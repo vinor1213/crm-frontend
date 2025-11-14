@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import { getaccesscontrol } from "@/app/lib/request/permissionRequest";
 import { getLeads, } from "@/app/lib/request/leadRequest";
 import { getActiveInstitutions } from "@/app/lib/request/institutionRequest";
+import ExportModal from "@/components/ExportModal";
 
 interface Application {
   _id?: string;
@@ -53,8 +54,7 @@ interface Lead {
 
 export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState<"application" | "lead">("application");
-
-
+  const [open, setOpen] = useState(false);
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [leadloading, setleadLoading] = useState(true);
@@ -205,7 +205,17 @@ export default function ReportsPage() {
     fetchApplications();
   }, [fetchApplications]);
 
-
+  const filteredApplications = (applications || []).map((app: any) => ({
+    ApplicationId: app.applicationId || "-",
+    Institute: app.institute?.name || app.instituteId || "-",
+    ApplicantName: app.applicantName || app.personalData?.["Full Name"] || "-",
+    Program: app.program || "-",
+    AcademicYear: app.academicYear || "-",
+    PaymentStatus: app.paymentStatus || "-",
+    CreatedAt: app.createdAt
+      ? new Date(app.createdAt).toLocaleDateString()
+      : "-"
+  }));
 
 
   const fetchLeads = useCallback(async () => {
@@ -235,6 +245,24 @@ export default function ReportsPage() {
       fetchLeads();
     }
   }, [activeTab, fetchLeads]);
+
+  const filteredLeads = (leads || []).map((lead: any) => ({
+    Institute: lead.institute?.name || lead.instituteId || "-",
+    Candidate: lead.candidateName || "-",
+    Program: lead.program || "-",
+    Phone: lead.phoneNumber || "-",
+    Communication: lead.communication || "-",
+    FollowUpDate: lead.followUpDate
+      ? new Date(lead.followUpDate).toLocaleString()
+      : "-",
+
+    Status: lead.status || "-",
+    ApplicationStatus: lead.applicationId
+      ? "Applied"
+      : lead.status === "Interested"
+        ? "Pending Application"
+        : "Pending"
+  }));
 
 
   const columns = [
@@ -287,13 +315,12 @@ export default function ReportsPage() {
 
   ];
   const leadcolumns = [
+
     {
       header: "Institute",
-      render: (lead: Lead) => {
-        const institute = institutions.find(
-          (inst) => inst.value === lead.instituteId
-        );
-        return institute ? institute.label : lead.instituteId || "—";
+      render: (lead: any) => {
+
+        return lead.institute?.name || lead.instituteId || "—";
       },
     },
     { header: "Candidate", accessor: "candidateName" },
@@ -409,7 +436,7 @@ export default function ReportsPage() {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+                className="border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#3a4480] transition"
               />
               <span className="flex items-center justify-center text-gray-500">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -422,7 +449,7 @@ export default function ReportsPage() {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+                className="border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#3a4480] transition"
               />
             </div>
 
@@ -436,7 +463,7 @@ export default function ReportsPage() {
                   setSearchApplicationId(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                className="border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#3a4480] transition"
               />
             )}
 
@@ -449,7 +476,7 @@ export default function ReportsPage() {
                   placeholder="Search by name..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9 pr-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                  className="pl-9 pr-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-[#3a4480] transition"
                 />
               </div>
             ) : (
@@ -461,7 +488,7 @@ export default function ReportsPage() {
                   setSearchApplicantName(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                className="border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#3a4480] transition"
               />
             )}
 
@@ -473,7 +500,7 @@ export default function ReportsPage() {
                   setSelectedInstitution(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                className="border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#3a4480] transition"
               >
                 <option value="all">All Institutions</option>
                 {institutions.map((inst) => (
@@ -492,7 +519,7 @@ export default function ReportsPage() {
                   setSelectedPayment(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                className="border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#3a4480] transition"
               >
                 <option value="all">All Payments</option>
                 <option value="Paid">Paid</option>
@@ -506,7 +533,7 @@ export default function ReportsPage() {
                 <select
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                  className="border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#3a4480] transition"
                 >
                   <option value="all">All Status</option>
                   {statusOptions.map((s) => (
@@ -519,7 +546,7 @@ export default function ReportsPage() {
                 <select
                   value={selectedCommunication}
                   onChange={(e) => setSelectedCommunication(e.target.value)}
-                  className="border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                  className="border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#3a4480] transition"
                 >
                   <option value="all">All Communication</option>
                   {communicationOptions.map((c) => (
@@ -539,7 +566,7 @@ export default function ReportsPage() {
                   setSelectedYear(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                className="border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#3a4480] transition"
               >
                 <option value="all">All Years</option>
                 <option value="2025-2026">2025-2026</option>
@@ -551,13 +578,21 @@ export default function ReportsPage() {
           {/* 📤 Export Button */}
           {(userpermission === "superadmin" || userpermission?.download) && (
             <button
-              onClick={() => toast.success("Exporting...")}
+              onClick={() => setOpen(true)}
               className="flex items-center justify-center gap-1 bg-green-700 hover:bg-green-800 text-white px-4 py-2 text-sm rounded-md transition"
             >
               <FileDown className="w-4 h-4" /> Export
             </button>
           )}
         </div>
+
+        <ExportModal
+          open={open}
+          title={activeTab === "application" ? "APPLICATION REPORT" : "LEAD REPORT"}
+          onClose={() => setOpen(false)}
+          data={activeTab === "application" ? filteredApplications : filteredLeads}
+        />
+
       </div>
 
 

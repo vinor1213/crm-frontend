@@ -12,6 +12,7 @@ import {
 import { Building2 } from "lucide-react";
 import { Country, State, City } from "country-state-city";
 import Spinner from "@/components/Spinner";
+import BackButton from "@/components/BackButton";
 
 interface OptionType {
   value: string;
@@ -180,19 +181,21 @@ export default function EditInstitutionPage() {
   if (loadingData) {
     return (
       <div className="flex justify-center items-center h-64 text-gray-600">
-        <Spinner fullScreen label="Loading institution details..." />
+        <Spinner />
       </div>
     );
   }
 
   return (
     <div className="p-6">
-      <div className="flex items-center gap-2 mb-6">
+      <div className="flex items-center gap-2 ">
         <Building2 className="w-6 h-6 text-blue-600" />
         <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
           Edit Institution
         </h1>
+
       </div>
+      {/* <BackButton /> */}
 
       <form
         onSubmit={handleSubmit}

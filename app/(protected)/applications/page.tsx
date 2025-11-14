@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import { getApplications, deleteApplication, updatePaymentStatus } from "@/app/lib/request/application";
 import { getActiveInstitutions } from "@/app/lib/request/institutionRequest";
 import { getaccesscontrol } from "@/app/lib/request/permissionRequest";
+import ExportModal from "@/components/ExportModal";
 
 interface Application {
   _id?: string;
@@ -37,7 +38,7 @@ export default function ApplicationsPage() {
   >([]);
   const [selectedInstitution, setSelectedInstitution] = useState("all");
   const [selectedYear, setSelectedYear] = useState("all");
-
+  const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<Application | null>(null);
   const [viewOpen, setViewOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -47,9 +48,6 @@ export default function ApplicationsPage() {
   const [confirmPaymentOpen, setConfirmPaymentOpen] = useState(false);
   const [selectedPaymentApp, setSelectedPaymentApp] = useState<Application | null>(null);
   const [selectedNewStatus, setSelectedNewStatus] = useState<string>("");
-
-
-
 
 
   useEffect(() => {
@@ -110,8 +108,7 @@ export default function ApplicationsPage() {
     fetchPermissions();
   }, []);
 
-  /** 💰 Handle Payment Status Change (Paid / Unpaid) */
-  /** 💰 Handle Payment Status Change */
+
   const handleChangePaymentStatus = async () => {
     if (!selectedPaymentApp?._id || !selectedNewStatus) return;
     try {
@@ -152,6 +149,19 @@ export default function ApplicationsPage() {
       setLoading(false);
     }
   }, [currentPage, selectedYear, selectedInstitution, limit, selectedPayment, searchApplicationId, searchApplicantName]);
+
+  const filteredApplications = (applications || []).map((app: any) => ({
+    ApplicationId: app.applicationId || "-",
+    Institute: app.institute?.name || app.instituteId || "-",
+    ApplicantName: app.applicantName || app.personalData?.["Full Name"] || "-",
+    Program: app.program || "-",
+    AcademicYear: app.academicYear || "-",
+    PaymentStatus: app.paymentStatus || "-",
+    CreatedAt: app.createdAt
+      ? new Date(app.createdAt).toLocaleDateString()
+      : "-"
+  }));
+
 
   useEffect(() => {
     fetchApplications();
@@ -375,7 +385,7 @@ export default function ApplicationsPage() {
                   setSearchApplicationId(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="border text-sm rounded-md py-2 px-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="border text-sm rounded-md py-2 px-2 focus:outline-none focus:ring-2 focus:ring-[#3a4480]"
               />
 
               {/* Applicant Name Search */}
@@ -387,7 +397,7 @@ export default function ApplicationsPage() {
                   setSearchApplicantName(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="border text-sm rounded-md py-2 px-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="border text-sm rounded-md py-2 px-2 focus:outline-none focus:ring-2 focus:ring-[#3a4480]"
               />
               {/* Institution Filter */}
 
@@ -398,7 +408,7 @@ export default function ApplicationsPage() {
                     setSelectedInstitution(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="border text-sm rounded-md py-2 px-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="border text-sm rounded-md py-2 px-2 focus:outline-none focus:ring-2 focus:ring-[#3a4480]"
                 >
                   <option value="all">All Institutions</option>
                   {institutions.map((inst) => (
@@ -415,7 +425,7 @@ export default function ApplicationsPage() {
                   setSelectedPayment(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="border text-sm rounded-md py-2 px-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="border text-sm rounded-md py-2 px-2 focus:outline-none focus:ring-2 focus:ring-[#3a4480]"
               >
                 <option value="all">All Payments</option>
                 <option value="Paid">Paid</option>
@@ -430,7 +440,7 @@ export default function ApplicationsPage() {
                   setSelectedYear(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="border text-sm rounded-md py-2 px-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="border text-sm rounded-md py-2 px-2 focus:outline-none focus:ring-2 focus:ring-[#3a4480]"
               >
                 <option value="all">All Years</option>
                 <option value="2025-2026">2025-2026</option>
@@ -443,7 +453,7 @@ export default function ApplicationsPage() {
 
           {(userpermission === "superadmin" || userpermission?.download) && (
             <button
-              onClick={() => toast.success("Exporting...")}
+              onClick={() => setOpen(true)}
               className="flex items-center justify-center gap-1 bg-green-700 hover:bg-green-800 text-white px-3 py-2 text-sm rounded-md w-full sm:w-auto transition"
             >
               <FileDown className="w-4 h-4" /> Export
@@ -461,6 +471,12 @@ export default function ApplicationsPage() {
             </Link>)}
 
         </div>
+        <ExportModal
+          open={open}
+          title={"Applications"}
+          onClose={() => setOpen(false)}
+          data={filteredApplications}
+        />
       </div>
 
       {/* ✅ Data Table */}
@@ -491,9 +507,6 @@ export default function ApplicationsPage() {
         }}
       />
 
-
-
-
       {/* ⚠️ Confirm Delete Dialog */}
       <ConfirmDialog
         open={confirmOpen}
@@ -503,6 +516,8 @@ export default function ApplicationsPage() {
         onConfirm={handleDelete}
         onCancel={() => setConfirmOpen(false)}
       />
+
+
     </div>
   );
 }

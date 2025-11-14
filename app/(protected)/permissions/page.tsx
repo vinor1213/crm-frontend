@@ -129,16 +129,20 @@ export default function PermissionsPage() {
     }
   };
 
-  const selectStyles = {
-    control: (provided: any) => ({
-      ...provided,
-      minHeight: 38,
-      borderRadius: 6,
-      borderColor: "#3b82f6",
-      boxShadow: "none",
-    }),
-    menu: (provided: any) => ({ ...provided, zIndex: 9999 }),
-  };
+const customStyles = {
+  control: (provided: any, state: any) => ({
+    ...provided,
+    minHeight: 38,
+    borderRadius: 6,
+    borderColor: state.isFocused ? "#3a4480" : "#3a4480",
+    boxShadow: "none",
+  }),
+  menu: (provided: any) => ({ 
+    ...provided, 
+    zIndex: 9999 
+  }),
+};
+
 
   return (
     <div className="p-4 sm:p-6 space-y-6">
@@ -158,7 +162,7 @@ export default function PermissionsPage() {
               onChange={setSelectedInstitute}
               options={institutions}
               placeholder="Select Institution"
-              styles={selectStyles}
+              styles={customStyles}
               isClearable
             />
           </div>
@@ -169,7 +173,7 @@ export default function PermissionsPage() {
               onChange={setSelectedRole}
               options={roleOptions}
               placeholder="Select Role"
-              styles={selectStyles}
+              styles={customStyles}
               isClearable
             />
           </div>

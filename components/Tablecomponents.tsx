@@ -45,7 +45,7 @@ export function DataTable<T extends { _id?: string }>({
                                     colSpan={columns.length}
                                     className="text-center py-6 text-gray-500 dark:text-gray-400"
                                 >
-                                     <Spinner fullScreen label="Loading ..." />
+                                     <Spinner />
                                 </td>
                             </tr>
                         ) : data.length === 0 ? (

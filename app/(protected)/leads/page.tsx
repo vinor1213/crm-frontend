@@ -12,6 +12,7 @@ import { getLeads, deleteLead, updateLead } from "@/app/lib/request/leadRequest"
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { getaccesscontrol } from "@/app/lib/request/permissionRequest";
+import ExportModal from "@/components/ExportModal";
 
 interface OptionType {
   value: string;
@@ -61,7 +62,7 @@ export default function LeadsPage() {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [userpermission, setUserpermisssion] = useState<any | null>(null);
   const [hasPermission, setHasPermission] = useState<boolean>(true);
-
+  const [open, setOpen] = useState(false);
   const [newStatus, setNewStatus] = useState<string | null>(null);
   const [viewOpen, setViewOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -177,6 +178,26 @@ export default function LeadsPage() {
   }, [fetchLeads]);
 
 
+
+  const filteredLeads = (leads || []).map((lead: any) => ({
+    Institute: lead.institute?.name || lead.instituteId || "-",
+    Candidate: lead.candidateName || "-",
+    Program: lead.program || "-",
+    Phone: lead.phoneNumber || "-",
+    Communication: lead.communication || "-",
+    FollowUpDate: lead.followUpDate
+      ? new Date(lead.followUpDate).toLocaleString()
+      : "-",
+
+    Status: lead.status || "-",
+    ApplicationStatus: lead.applicationId
+      ? "Applied"
+      : lead.status === "Interested"
+        ? "Pending Application"
+        : "Pending"
+  }));
+
+
   // ------------------ LOAD INSTITUTIONS ------------------
   useEffect(() => {
     const loadInstitutions = async () => {
@@ -234,13 +255,14 @@ export default function LeadsPage() {
 
   // ------------------ COLUMNS ------------------
   const columns = [
+
+
+
     {
       header: "Institute",
-      render: (lead: Lead) => {
-        const institute = institutions.find(
-          (inst) => inst.value === lead.instituteId
-        );
-        return institute ? institute.label : lead.instituteId || "—";
+      render: (lead: any) => {
+
+        return lead.institute?.name || lead.instituteId || "—";
       },
     },
     { header: "Candidate", accessor: "candidateName" },
@@ -461,7 +483,7 @@ export default function LeadsPage() {
                   placeholder="Search by name..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+                  className="w-full pl-9 pr-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-[#3a4480] transition"
                 />
               </div>
 
@@ -471,7 +493,7 @@ export default function LeadsPage() {
               {(userpermission === "superadmin" && <select
                 value={selectedInstitution}
                 onChange={(e) => setSelectedInstitution(e.target.value)}
-                className="w-full sm:w-auto border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+                className="w-full sm:w-auto border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#3a4480] transition"
               >
                 <option value="all">All Institutions</option>
                 {institutions.map((inst) => (
@@ -485,7 +507,7 @@ export default function LeadsPage() {
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="w-full sm:w-auto border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+                className="w-full sm:w-auto border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#3a4480] transition"
               >
                 <option value="all">All Status</option>
                 {statusOptions.map((s) => (
@@ -499,7 +521,7 @@ export default function LeadsPage() {
               <select
                 value={selectedCommunication}
                 onChange={(e) => setSelectedCommunication(e.target.value)}
-                className="w-full sm:w-auto border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+                className="w-full sm:w-auto border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#3a4480] transition"
               >
                 <option value="all">All Communication</option>
                 {communicationOptions.map((c) => (
@@ -514,7 +536,7 @@ export default function LeadsPage() {
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full sm:w-auto border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+                  className="w-full sm:w-auto border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#3a4480] transition"
                 />
 
                 {/* Center Icon */}
@@ -535,7 +557,7 @@ export default function LeadsPage() {
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full sm:w-auto border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+                  className="w-full sm:w-auto border text-sm rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#3a4480] transition"
                 />
               </div>
             </>
@@ -544,7 +566,7 @@ export default function LeadsPage() {
           {/* 📤 Export */}
           {(userpermission === "superadmin" || userpermission?.download) && (
             <button
-              onClick={() => toast.success("Exporting...")}
+              onClick={() => setOpen(true)}
               className="flex items-center justify-center gap-1 bg-green-700 hover:bg-green-800 text-white px-3 py-2 text-sm rounded-md w-full sm:w-auto transition"
             >
               <FileDown className="w-4 h-4" /> Export
@@ -560,7 +582,12 @@ export default function LeadsPage() {
             </Link>)}
 
         </div>
-
+        <ExportModal
+          open={open}
+          title={"Leads"}
+          onClose={() => setOpen(false)}
+          data={filteredLeads}
+        />
       </div>
 
       {/* TABLE */}

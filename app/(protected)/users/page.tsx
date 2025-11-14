@@ -28,6 +28,7 @@ interface User {
   firstname: string;
   lastname: string;
   username: string;
+  instituteId: string;
   email: string;
   mobileNo: string;
   designation: string;
@@ -51,10 +52,22 @@ export default function UsersPage() {
   const [selected, setSelected] = useState<User | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [viewOpen, setViewOpen] = useState(false);
+
   const [confirmType, setConfirmType] = useState<"delete" | "toggle" | null>(
     null
   );
   const [exportOpen, setExportOpen] = useState(false);
+  const filteredUsers = (users || []).map(user => ({
+    FullName: `${user.firstname || ""} ${user.lastname || ""}`.trim() || "-",
+    Username: user.username || "-",
+    Email: user.email || "-",
+    Mobile: user.mobileNo || "-",
+    Designation: user.designation || "-",
+    Role: user.role || "-",
+    InstituteID: user.instituteId || "-",
+    Status: user.status || "-"
+  }));
+
 
 
 
@@ -124,11 +137,11 @@ export default function UsersPage() {
     try {
       if (confirmType === "delete") {
         await deleteUserRequest(selected._id);
-        
+
       } else if (confirmType === "toggle") {
         const newStatus = selected.status === "active" ? "inactive" : "active";
         await toggleUserStatusRequest(selected._id, newStatus);
-      
+
       }
       await fetchUsers();
     } catch (err: any) {
@@ -246,7 +259,7 @@ export default function UsersPage() {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full sm:w-56 pl-8 pr-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full sm:w-56 pl-8 pr-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-[#3a4480]"
             />
           </div>
 
@@ -257,7 +270,7 @@ export default function UsersPage() {
               setSelectedInstitution(e.target.value);
               setCurrentPage(1);
             }}
-            className="border text-sm rounded-md py-2 px-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="border text-sm rounded-md py-2 px-2 focus:outline-none focus:ring-2 focus:ring-[#3a4480]"
           >
             <option value="all">All Institutions</option>
             {institutions.map((inst) => (
@@ -274,7 +287,7 @@ export default function UsersPage() {
               setSelectedRole(e.target.value);
               setCurrentPage(1);
             }}
-            className="border text-sm rounded-md py-2 px-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="border text-sm rounded-md py-2 px-2 focus:outline-none focus:ring-2 focus:ring-[#3a4480]"
           >
             <option value="all">All Roles</option>
             <option value="superadmin">Super Admin</option>
@@ -289,7 +302,7 @@ export default function UsersPage() {
               setStatusFilter(e.target.value);
               setCurrentPage(1);
             }}
-            className="border text-sm rounded-md py-2 px-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="border text-sm rounded-md py-2 px-2 focus:outline-none focus:ring-2 focus:ring-[#3a4480]"
           >
             <option value="all">All Status</option>
             <option value="active">Active</option>
@@ -312,7 +325,13 @@ export default function UsersPage() {
             <Plus className="w-4 h-4" /> Add New
           </Link>
         </div>
-
+        {/* ✅ Export Modal */}
+        <ExportModal
+          open={exportOpen}
+          title={"users"}
+          onClose={() => setExportOpen(false)}
+          data={filteredUsers}
+        />
       </div>
 
       <DataTable
@@ -348,8 +367,7 @@ export default function UsersPage() {
         onCancel={() => setConfirmOpen(false)}
       />
 
-      {/* ✅ Export Modal */}
-      {/* <ExportModal open={exportOpen} onClose={() => setExportOpen(false)} /> */}
+
     </div>
   );
 }

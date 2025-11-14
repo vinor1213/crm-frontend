@@ -15,6 +15,7 @@ import { getpendingApplications, sendMail } from "@/app/lib/request/application"
 import { getActiveInstitutions } from "@/app/lib/request/institutionRequest";
 import { getaccesscontrol } from "@/app/lib/request/permissionRequest";
 import { motion, AnimatePresence } from "framer-motion";
+import ExportModal from "@/components/ExportModal";
 
 interface Application {
   _id: string;
@@ -35,7 +36,7 @@ interface Application {
 }
 
 
-export default function ApplicationsPage() {
+export default function CommunicationsPage() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -52,7 +53,7 @@ export default function ApplicationsPage() {
   const [hasPermission, setHasPermission] = useState<boolean>(true);
   const [emailSubject, setEmailSubject] = useState("");
   const [isSending, setIsSending] = useState(false);
-
+  const [open, setOpen] = useState(false);
 
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
   const [modalType, setModalType] = useState<"mail" | "whatsapp" | "sms" | null>(
@@ -149,9 +150,23 @@ export default function ApplicationsPage() {
   ]);
 
 
+
+
   useEffect(() => {
     fetchApplications();
   }, [fetchApplications]);
+
+  const filteredApplications = (applications || []).map((app: any) => ({
+    ApplicationId: app.applicationId || "-",
+    Institute: app.institute?.name || app.instituteId || "-",
+    ApplicantName: app.applicantName || app.personalData?.["Full Name"] || "-",
+    Program: app.program || "-",
+    AcademicYear: app.academicYear || "-",
+    PaymentStatus: app.paymentStatus || "-",
+    CreatedAt: app.createdAt
+      ? new Date(app.createdAt).toLocaleDateString()
+      : "-"
+  }));
 
   // 🔹 Load Institutions
   useEffect(() => {
@@ -345,7 +360,7 @@ export default function ApplicationsPage() {
                   setSearchApplicationId(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="border text-sm rounded-md py-2 px-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="border text-sm rounded-md py-2 px-2 focus:outline-none focus:ring-2 focus:ring-[#3a4480]"
               />
 
               {/* Applicant Name Search */}
@@ -357,7 +372,7 @@ export default function ApplicationsPage() {
                   setSearchApplicantName(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="border text-sm rounded-md py-2 px-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="border text-sm rounded-md py-2 px-2 focus:outline-none focus:ring-2 focus:ring-[#3a4480]"
               />
               {/* Institution Filter */}
               {(userpermission === "superadmin" && <select
@@ -366,7 +381,7 @@ export default function ApplicationsPage() {
                   setSelectedInstitution(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="border text-sm rounded-md py-2 px-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="border text-sm rounded-md py-2 px-2 focus:outline-none focus:ring-2 focus:ring-[#3a4480]"
               >
                 <option value="all">All Institutions</option>
                 {institutions.map((inst) => (
@@ -385,7 +400,7 @@ export default function ApplicationsPage() {
                   setSelectedYear(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="border text-sm rounded-md py-2 px-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="border text-sm rounded-md py-2 px-2 focus:outline-none focus:ring-2 focus:ring-[#3a4480]"
               >
                 <option value="all">All Years</option>
                 <option value="2025-2026">2025-2026</option>
@@ -398,7 +413,7 @@ export default function ApplicationsPage() {
 
           {(userpermission === "superadmin" || userpermission?.download) && (
             <button
-              onClick={() => toast.success("Exporting...")}
+              onClick={() => setOpen(true)}
               className="flex items-center justify-center gap-1 bg-green-700 hover:bg-green-800 text-white px-3 py-2 text-sm rounded-md w-full sm:w-auto transition"
             >
               <FileDown className="w-4 h-4" /> Export
@@ -408,6 +423,13 @@ export default function ApplicationsPage() {
 
 
         </div>
+
+        <ExportModal
+          open={open}
+          title={"Communications"}
+          onClose={() => setOpen(false)}
+          data={filteredApplications}
+        />
       </div>
 
       {/* Table */}
